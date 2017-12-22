@@ -62,10 +62,11 @@ int main(int argc, char **argv)
 
 	cout << "width:" << width << ",height:" << height << endl;
 
-	P_IVA_OBJECT_DETECT_INFO  p_IVA_OBJECT_DETECT_INFOp = NULL;
+	IVA_OBJECT_DETECT_INFO  sIVA_OBJECT_DETECT_INFOp;
+	sIVA_OBJECT_DETECT_INFOp.pLabelInfo = new IVA_LABEL_INFO[1024];
 	cout << "run ObjectDetectAlgorithmDLLExe......." << endl;
-	ObjectDetectAlgorithmDLLExe(oDDATA, (unsigned char *)originImage->imageData, 20, nWidth, nHeight, 1, p_IVA_OBJECT_DETECT_INFOp);
-	
+	ObjectDetectAlgorithmDLLExe(oDDATA, (unsigned char *)originImage->imageData, 20, nWidth, nHeight, 1, &sIVA_OBJECT_DETECT_INFOp);
+	cout << "result:" << sIVA_OBJECT_DETECT_INFOp.nLabelRect << endl;
 	return 0;
 }
 

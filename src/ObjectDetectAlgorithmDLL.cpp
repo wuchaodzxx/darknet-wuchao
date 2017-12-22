@@ -159,9 +159,9 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 	sT_IVA_IMAGE_INFO.unHeight = nHeight;
 	sT_IVA_IMAGE_INFO.unWidth = nWidth;
 	//存放类别结构体
-	IVA_LABEL_INFO iVA_LABEL_INFO_array[1024];
+	IVA_LABEL_INFO* iVA_LABEL_INFO_array = pODInfo->pLabelInfo;
 	//存放目标检测结果结构体
-	IVA_OBJECT_DETECT_INFO iVA_OBJECT_DETECT_INFO;
+	//IVA_OBJECT_DETECT_INFO iVA_OBJECT_DETECT_INFO = *pODInfo;
 
 	//计时开始
 	clock_t start, ends;
@@ -248,8 +248,6 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		int right = left + iVA_RECT.width - 1;
 		int buttom = top + iVA_RECT.height - 1;
 		printf("top=%d,left=%d,right=%d,buttom=%d \n", top, left, right, buttom);
-		//类别结构体数组
-		IVA_LABEL_INFO iVA_LABEL_INFO_array[1024];
 
 		int box_sum = 0;
 		if (oBoxs.nums > 0) {
@@ -305,7 +303,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		}
 		else {
 			printf("no object detected! \n");
-			iVA_OBJECT_DETECT_INFO.nLabelRect = 0;
+			pODInfo->nLabelRect = 0;
 		}
 		printf("Object num is %d now;\n", box_sum);
 
@@ -358,20 +356,22 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		time_t timep;
 		time(&timep);
 		//设置返回结果结构体
-		iVA_OBJECT_DETECT_INFO.ulTime = timep;//算法运行时间
-		iVA_OBJECT_DETECT_INFO.originImage = sT_IVA_IMAGE_INFO;//原始图像信息
-		iVA_OBJECT_DETECT_INFO.pLabelInfo = iVA_LABEL_INFO_array;//类别信息
+		pODInfo->ulTime = timep;//算法运行时间
+		pODInfo->originImage = sT_IVA_IMAGE_INFO;//原始图像信息
+		pODInfo->pLabelInfo = iVA_LABEL_INFO_array;//类别信息
 
 		int nDetectRect = ((ODDATA *)pODHandle)->rule.nDetectRect;
+
+		std::cout << "box_sum:" << box_sum << std::endl;
 		if (nDetectRect<box_sum){
-			iVA_OBJECT_DETECT_INFO.nLabelRect = nDetectRect;//类别数目
+			pODInfo->nLabelRect = nDetectRect;//类别数目
 		}
 		else{
-			iVA_OBJECT_DETECT_INFO.nLabelRect = box_sum;//类别数目
+			pODInfo->nLabelRect = box_sum;//类别数目
 		}
 
 
-		iVA_OBJECT_DETECT_INFO.resultImage = *pIVA_IMAGE_INFO;//结果图信息
+		pODInfo->resultImage = *pIVA_IMAGE_INFO;//结果图信息
 
 		//cvReleaseImageHeader(&im);
 		//free(pRGB);
