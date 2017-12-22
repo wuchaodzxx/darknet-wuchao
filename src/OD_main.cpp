@@ -54,8 +54,7 @@ int main(int argc, char **argv)
 	{
 		cvCopy(originImage, image);
 	}
-	//cvShowImage("image", image);
-	//cvWaitKey(0);
+
 
 	int nWidth = image->width;
 	int nHeight = image->height;
@@ -64,9 +63,22 @@ int main(int argc, char **argv)
 
 	IVA_OBJECT_DETECT_INFO  sIVA_OBJECT_DETECT_INFOp;
 	sIVA_OBJECT_DETECT_INFOp.pLabelInfo = new IVA_LABEL_INFO[1024];
+	sIVA_OBJECT_DETECT_INFOp.originImage.pImage = (unsigned char *)malloc(sizeof(char)* 10*1024*1024);
+	sIVA_OBJECT_DETECT_INFOp.resultImage.pImage = (unsigned char *)malloc(sizeof(char)* 10 * 1024 * 1024);
 	cout << "run ObjectDetectAlgorithmDLLExe......." << endl;
-	ObjectDetectAlgorithmDLLExe(oDDATA, (unsigned char *)originImage->imageData, 20, nWidth, nHeight, 1, &sIVA_OBJECT_DETECT_INFOp);
+	ObjectDetectAlgorithmDLLExe(oDDATA, (unsigned char *)image->imageData, 20, nWidth, nHeight, 1, &sIVA_OBJECT_DETECT_INFOp);
 	cout << "result:" << sIVA_OBJECT_DETECT_INFOp.nLabelRect << endl;
+
+	//½á¹ûÍ¼ÏÔÊ¾
+	unsigned char* pRGB = NULL;
+	pRGB = (unsigned char*)malloc(nWidth*nHeight * 3);
+	IplImage *outIm = cvCreateImageHeader(cvSize(nWidth, nHeight), IPL_DEPTH_8U, 3);
+	memcpy(pRGB, sIVA_OBJECT_DETECT_INFOp.resultImage.pImage, nWidth*nHeight * 3);
+	cvSetData(outIm, pRGB, nWidth * 3);
+	cvCvtColor(outIm, outIm, CV_RGB2BGR);
+	cvShowImage("outImage", outIm);
+	cvWaitKey(0);
+
 	return 0;
 }
 

@@ -103,23 +103,21 @@ void* CreateObjectDetectDLLHandle(IVA_OBJECT_DETECT_RULE* pODRule) {
 	}
 	else
 	{
-		LogObjectDetect(LOG_LEVEL_ERROR, "【LeaveWorkDetectAlgorithm】read config failed!\n");
+		LogObjectDetect(LOG_LEVEL_ERROR, "[LeaveWorkDetectAlgorithm] read config failed!\n");
 		return NULL;
 	}
 	setlocale(LC_ALL, "C");
 	cout << "name_list=" << sname_list << ",cfg=" << scfg << ",weights=" << sweights << ",thresh=" << sthresh << endl;
 
 	/////////////////////////////////////
-	//list *options = OD_read_cfg(pODRule->pIniPath);
-	//cout << "lasterror:" << GetLastError()<< endl;
-	//char *name_list = OD_find_str(options, "names", "data/names.list");
 	char **names = OD_get_labels((char *)sname_list.c_str());
 
 	char *cfg = (char *)scfg.c_str();
 	char *weights = (char *)sweights.c_str();
 	float thresh = atof((char *)sthresh.c_str());
 	if (strcmp(cfg, "None") == 0 || strcmp(weights, "None") == 0) {
-		printf("cfg or weights not defined in config file /n");
+		LogObjectDetect(LOG_LEVEL_ERROR, "[LeaveWorkDetectAlgorithm] cfg or weights not defined in config file \n");
+		printf("cfg or weights not defined in config file \n");
 		return NULL;
 	}
 
@@ -170,6 +168,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 
 	if (pRGB)
 	{
+
 		IplImage *im = cvCreateImageHeader(cvSize(nWidth, nHeight), IPL_DEPTH_8U, 3);
 		if (!CV_IS_IMAGE_HDR(im))
 		{
@@ -183,6 +182,8 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 			memcpy(pRGB, pByte, nWidth*nHeight * 3);
 			cvSetData(im, pRGB, nWidth * 3);
 			cvCvtColor(im, im, CV_RGB2BGR);   //opencv默认的是BGR格式  YUV12_to_RGB24转出的RGB数据是上下翻转的
+			//cvShowImage("1222", im);
+			//cvWaitKey(0);
 		}
 		else if (nFrameType == 2)  //2表示是YV12数据格式
 		{
@@ -194,7 +195,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 			}
 			else
 			{
-				LogObjectDetect(LOG_LEVEL_ERROR, "【ObjectDetectAlgorithm】YUV12_to_RGB24 error !\n");
+				LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm]YUV12_to_RGB24 error !\n");
 			}
 		}
 		else if (nFrameType == 3)   //2表示是YUV420p数据格式
@@ -205,7 +206,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 			}
 			else
 			{
-				LogObjectDetect(LOG_LEVEL_ERROR, "【ObjectDetectAlgorithm】YUV420P_To_BGR24 error !\n");
+				LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] YUV420P_To_BGR24 error !\n");
 			}
 		}
 		else if (nFrameType == 4)  //4表示BGR24数据格式
@@ -215,14 +216,11 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		}
 		else
 		{
-			LogObjectDetect(LOG_LEVEL_ERROR, "【ObjectDetectAlgorithm】don't support the {nFrameType} !\n");
+			LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] don't support the {nFrameType} !\n");
 		}
 		//cvShowImage("exeimage", im);
 		//cvWaitKey(0);
 
-
-		//cv::Mat img;
-		//img = cv::cvarrToMat(im);
 
 		////转换成darknet的image结构体
 		image img2 = OD_ipl_to_image(im);
@@ -239,12 +237,18 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		cout << "OD_detector is Done.using time:" << ends - start << endl;
 
 		//获取指定区域
-		IVA_RECT iVA_RECT;
-		iVA_RECT = *((ODDATA *)pODHandle)->rule.pDetectRect;
-		int top = iVA_RECT.y;
-		int left = iVA_RECT.x;
-		int right = left + iVA_RECT.width - 1;
-		int buttom = top + iVA_RECT.height - 1;
+		int top = 1;
+		int left = 1;
+		int right = left + nWidth - 2;
+		int buttom = top + nHeight - 2;
+		if (((ODDATA *)pODHandle)->rule.nDetectRect>0){
+			IVA_RECT iVA_RECT;
+			iVA_RECT = *((ODDATA *)pODHandle)->rule.pDetectRect;
+			top = iVA_RECT.y;
+			left = iVA_RECT.x;
+			right = left + iVA_RECT.width - 1;
+			buttom = top + iVA_RECT.height - 1;
+		}
 		printf("top=%d,left=%d,right=%d,buttom=%d \n", top, left, right, buttom);
 
 		int box_sum = 0;
@@ -319,6 +323,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		IplImage *src = im;
 		IplImage *dst;
 		dst = cvCloneImage(src);
+		
 		if (box_sum>0) {
 			int i2;
 			for (i2 = 0; i2 < box_sum; i2++) {
@@ -338,12 +343,12 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 				P2.y = iVA_RECT.y + iVA_RECT.height - 1;
 				const char *strID = labelName.c_str();
 				cvRectangle(dst, P1, P2, CV_RGB(0, 255, 0), 2); //绿色画框  
-				cvPutText(dst, strID, cvPoint(P1.x, P1.y - 10), &font, CV_RGB(255, 0, 0));//红色字体注释  
+				cvPutText(dst, strID, cvPoint(P1.x + 10, P1.y + 20), &font, CV_RGB(255, 0, 0));//红色字体注释  
 
 			}
 		}
-		cvShowImage("outimage", dst);
-		cvWaitKey(0);
+		//cvShowImage("outimage", dst);
+		//cvWaitKey(0);
 
 		//结果图
 		IVA_IMAGE_INFO* pIVA_IMAGE_INFO = new IVA_IMAGE_INFO;
@@ -353,24 +358,29 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		//获取当前时间（秒）
 		time_t timep;
 		time(&timep);
+
 		//设置返回结果结构体
-		pODInfo->ulTime = timep;//算法运行时间
-		pODInfo->originImage = sT_IVA_IMAGE_INFO;//原始图像信息
-		pODInfo->pLabelInfo = iVA_LABEL_INFO_array;//类别信息
-
+		
 		int nDetectRect = ((ODDATA *)pODHandle)->rule.nDetectRect;
-
-		std::cout << "box_sum:" << box_sum << std::endl;
-		if (nDetectRect<box_sum){
+		if (nDetectRect<box_sum && nDetectRect>0){
 			pODInfo->nLabelRect = nDetectRect;//类别数目
 		}
 		else{
 			pODInfo->nLabelRect = box_sum;//类别数目
 		}
+		pODInfo->ulTime = timep;//算法运行时间
+		pODInfo->pLabelInfo = iVA_LABEL_INFO_array;//类别信息
+		if (nSize <= (pODInfo->originImage.nBuffSize)){
+			memcpy(pODInfo->originImage.pImage, sT_IVA_IMAGE_INFO.pImage, nSize);
+			pODInfo->originImage.ulSize = nSize;
+			pODInfo->originImage.unHeight = nHeight;
+			pODInfo->originImage.unWidth = nWidth;
 
-
-		pODInfo->resultImage = *pIVA_IMAGE_INFO;//结果图信息
-
+			memcpy(pODInfo->resultImage.pImage, pODInfo->resultImage.pImage, nSize);
+			pODInfo->resultImage.ulSize = nSize;
+			pODInfo->resultImage.unHeight = nHeight;
+			pODInfo->resultImage.unWidth = nWidth;
+		}
 		cvReleaseImageHeader(&im);
 		cvReleaseImageHeader(&dst);
 		free(pRGB);

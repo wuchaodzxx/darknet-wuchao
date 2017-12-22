@@ -50,6 +50,7 @@ extern "C"{
 	typedef struct ST_IVA_IMAGE_INFO
 	{
 		unsigned char* pImage;        //图像数据,JPEG压缩格式
+		unsigned int   nBuffSize;	  //图片分配缓存
 		unsigned long  ulSize;        //每个图像的大小  
 		unsigned int   unWidth;       //每个图像的宽度  
 		unsigned int   unHeight;      //每个图像的高度  
