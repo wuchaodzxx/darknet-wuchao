@@ -160,8 +160,6 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 	sT_IVA_IMAGE_INFO.unWidth = nWidth;
 	//存放类别结构体
 	IVA_LABEL_INFO* iVA_LABEL_INFO_array = pODInfo->pLabelInfo;
-	//存放目标检测结果结构体
-	//IVA_OBJECT_DETECT_INFO iVA_OBJECT_DETECT_INFO = *pODInfo;
 
 	//计时开始
 	clock_t start, ends;
@@ -175,7 +173,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		IplImage *im = cvCreateImageHeader(cvSize(nWidth, nHeight), IPL_DEPTH_8U, 3);
 		if (!CV_IS_IMAGE_HDR(im))
 		{
-			LogObjectDetect(LOG_LEVEL_ERROR, "【ObjectDetectAlgorithm】cvCreateImageHeader error!\n");
+			LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] cvCreateImageHeader error!\n");
 			free(pRGB);
 			return -1;
 		}
@@ -373,8 +371,9 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 
 		pODInfo->resultImage = *pIVA_IMAGE_INFO;//结果图信息
 
-		//cvReleaseImageHeader(&im);
-		//free(pRGB);
+		cvReleaseImageHeader(&im);
+		cvReleaseImageHeader(&dst);
+		free(pRGB);
 	}
 	return 0;
 }
