@@ -258,8 +258,8 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 				ObjectBox oBox = oBoxs.objectBoxArray[i1];
 				std::cout << "oBox.nclass:" << oBox.nclass << std::endl;
 				//生成对应的结构体
-				IVA_LABEL_INFO* iVA_LABEL_INFO = new IVA_LABEL_INFO;
-				IVA_RECT* iVA_RECT = new IVA_RECT;
+				IVA_LABEL_INFO iVA_LABEL_INFO;
+				IVA_RECT iVA_RECT;
 
 				int box_top = oBox.top;
 				int box_left = oBox.left;
@@ -269,15 +269,15 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 				//如果nDetectRect表示检测整张图片
 				if (((ODDATA *)pODHandle)->rule.nDetectRect == 0) {
 
-					iVA_RECT->x = oBox.left;
-					iVA_RECT->y = oBox.top;
-					iVA_RECT->height = oBox.height;
-					iVA_RECT->width = oBox.width;
+					iVA_RECT.x = oBox.left;
+					iVA_RECT.y = oBox.top;
+					iVA_RECT.height = oBox.height;
+					iVA_RECT.width = oBox.width;
 
-					iVA_LABEL_INFO->nLabelCode = labelCode[oBox.nclass];
-					iVA_LABEL_INFO->labelRect = *iVA_RECT;
+					iVA_LABEL_INFO.nLabelCode = labelCode[oBox.nclass];
+					iVA_LABEL_INFO.labelRect = iVA_RECT;
 
-					iVA_LABEL_INFO_array[box_sum++] = *iVA_LABEL_INFO;
+					iVA_LABEL_INFO_array[box_sum++] = iVA_LABEL_INFO;
 				}
 				else if (oBox.left <= right && box_right >= left && oBox.top <= buttom && box_buttom >= top) {
 					//计算重合区域
@@ -287,18 +287,18 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 					int buttom_com = min(buttom, oBox.top + oBox.height);
 
 
-					iVA_RECT->x = left_com;
-					iVA_RECT->y = top_com;
-					iVA_RECT->height = buttom_com - top_com + 1;
-					iVA_RECT->width = right_com - left_com + 1;
+					iVA_RECT.x = left_com;
+					iVA_RECT.y = top_com;
+					iVA_RECT.height = buttom_com - top_com + 1;
+					iVA_RECT.width = right_com - left_com + 1;
 
-					iVA_LABEL_INFO->nLabelCode = labelCode[oBox.nclass];
-					iVA_LABEL_INFO->labelRect = *iVA_RECT;
+					iVA_LABEL_INFO.nLabelCode = labelCode[oBox.nclass];
+					iVA_LABEL_INFO.labelRect = iVA_RECT;
 
-					iVA_LABEL_INFO_array[box_sum++] = *iVA_LABEL_INFO;
+					iVA_LABEL_INFO_array[box_sum++] = iVA_LABEL_INFO;
 
-					printf("Oroginal  %s,lableCode:%d  : %f (%d,%d,%d,%d)\n", oBox.name, iVA_LABEL_INFO->nLabelCode, oBox.prob, oBox.left, oBox.top, oBox.width, oBox.height);
-					printf("Now       %s,lableCode:%d  : %f (%d,%d,%d,%d)\n", oBox.name, iVA_LABEL_INFO->nLabelCode, oBox.prob, iVA_LABEL_INFO->labelRect.x, iVA_LABEL_INFO->labelRect.y, iVA_LABEL_INFO->labelRect.width, iVA_LABEL_INFO->labelRect.height);
+					printf("Oroginal  %s,lableCode:%d  : %f (%d,%d,%d,%d)\n", oBox.name, iVA_LABEL_INFO.nLabelCode, oBox.prob, oBox.left, oBox.top, oBox.width, oBox.height);
+					printf("Now       %s,lableCode:%d  : %f (%d,%d,%d,%d)\n", oBox.name, iVA_LABEL_INFO.nLabelCode, oBox.prob, iVA_LABEL_INFO.labelRect.x, iVA_LABEL_INFO.labelRect.y, iVA_LABEL_INFO.labelRect.width, iVA_LABEL_INFO.labelRect.height);
 
 				}
 			}
@@ -350,9 +350,6 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		//cvShowImage("outimage", dst);
 		//cvWaitKey(0);
 
-		//结果图
-		IVA_IMAGE_INFO* pIVA_IMAGE_INFO = new IVA_IMAGE_INFO;
-		pIVA_IMAGE_INFO->pImage = (unsigned char *)dst->imageData;
 
 
 		//获取当前时间（秒）
@@ -371,13 +368,14 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		pODInfo->ulTime = timep;//算法运行时间
 		pODInfo->pLabelInfo = iVA_LABEL_INFO_array;//类别信息
 		if (nSize <= (pODInfo->originImage.nBuffSize)){
+			printf("copy image for return \n");
 			memcpy(pODInfo->originImage.pImage, sT_IVA_IMAGE_INFO.pImage, nSize);
 			pODInfo->originImage.ulSize = nSize;
 			pODInfo->originImage.unHeight = nHeight;
 			pODInfo->originImage.unWidth = nWidth;
 
-			memcpy(pODInfo->resultImage.pImage, pODInfo->resultImage.pImage, nSize);
-			pODInfo->resultImage.ulSize = nSize;
+			memcpy(pODInfo->resultImage.pImage, dst->imageData, dst->imageSize);
+			pODInfo->resultImage.ulSize = dst->imageSize;
 			pODInfo->resultImage.unHeight = nHeight;
 			pODInfo->resultImage.unWidth = nWidth;
 		}

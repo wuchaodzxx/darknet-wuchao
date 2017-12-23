@@ -63,20 +63,38 @@ int main(int argc, char **argv)
 
 	IVA_OBJECT_DETECT_INFO  sIVA_OBJECT_DETECT_INFOp;
 	sIVA_OBJECT_DETECT_INFOp.pLabelInfo = new IVA_LABEL_INFO[1024];
-	sIVA_OBJECT_DETECT_INFOp.originImage.pImage = (unsigned char *)malloc(sizeof(char)* 10*1024*1024);
-	sIVA_OBJECT_DETECT_INFOp.resultImage.pImage = (unsigned char *)malloc(sizeof(char)* 10 * 1024 * 1024);
+	sIVA_OBJECT_DETECT_INFOp.originImage.nBuffSize = 100 * 1024 * 1024;
+	sIVA_OBJECT_DETECT_INFOp.originImage.pImage = (unsigned char *)malloc(sizeof(char)* 100 * 1024 * 1024);
+	sIVA_OBJECT_DETECT_INFOp.resultImage.nBuffSize = 100 * 1024 * 1024;
+	sIVA_OBJECT_DETECT_INFOp.resultImage.pImage = (unsigned char *)malloc(sizeof(char)* 100 * 1024 * 1024);
 	cout << "run ObjectDetectAlgorithmDLLExe......." << endl;
-	ObjectDetectAlgorithmDLLExe(oDDATA, (unsigned char *)image->imageData, 20, nWidth, nHeight, 1, &sIVA_OBJECT_DETECT_INFOp);
+	ObjectDetectAlgorithmDLLExe(oDDATA, (unsigned char *)image->imageData, image->imageSize, nWidth, nHeight, 1, &sIVA_OBJECT_DETECT_INFOp);
 	cout << "result:" << sIVA_OBJECT_DETECT_INFOp.nLabelRect << endl;
+	if (sIVA_OBJECT_DETECT_INFOp.nLabelRect>0){
+		printf("labelRect.x:%d ,labelRect.y:%d ", sIVA_OBJECT_DETECT_INFOp.pLabelInfo[0].labelRect.x, sIVA_OBJECT_DETECT_INFOp.pLabelInfo[0].labelRect.y);
+	}
 
+	//原图显示
+	unsigned char* poRGB = NULL;
+	int oWidth = sIVA_OBJECT_DETECT_INFOp.originImage.unWidth;
+	int oHeight = sIVA_OBJECT_DETECT_INFOp.originImage.unHeight;
+	poRGB = (unsigned char*)malloc(oWidth*oHeight * 3);
+	IplImage *oriIm = cvCreateImageHeader(cvSize(oWidth, oHeight), IPL_DEPTH_8U, 3);
+	memcpy(poRGB, sIVA_OBJECT_DETECT_INFOp.originImage.pImage, oWidth*oHeight * 3);
+	cvSetData(oriIm, poRGB, oWidth * 3);
+	cvCvtColor(oriIm, oriIm, CV_BGR2RGB);
+	cvShowImage("originImage", oriIm);
+	cvWaitKey(0);
 	//结果图显示
 	unsigned char* pRGB = NULL;
-	pRGB = (unsigned char*)malloc(nWidth*nHeight * 3);
-	IplImage *outIm = cvCreateImageHeader(cvSize(nWidth, nHeight), IPL_DEPTH_8U, 3);
-	memcpy(pRGB, sIVA_OBJECT_DETECT_INFOp.resultImage.pImage, nWidth*nHeight * 3);
-	cvSetData(outIm, pRGB, nWidth * 3);
-	cvCvtColor(outIm, outIm, CV_RGB2BGR);
-	cvShowImage("outImage", outIm);
+	int rWidth = sIVA_OBJECT_DETECT_INFOp.resultImage.unWidth;
+	int rHeight = sIVA_OBJECT_DETECT_INFOp.resultImage.unHeight;
+	pRGB = (unsigned char*)malloc(rWidth*rHeight * 3);
+	IplImage *outIm = cvCreateImageHeader(cvSize(rWidth, rHeight), IPL_DEPTH_8U, 3);
+	memcpy(pRGB, sIVA_OBJECT_DETECT_INFOp.resultImage.pImage, rWidth*rHeight * 3);
+	cvSetData(outIm, pRGB, rWidth * 3);
+	cvCvtColor(outIm, outIm, CV_BGR2RGB);
+	cvShowImage("resultImage", outIm);
 	cvWaitKey(0);
 
 	return 0;
