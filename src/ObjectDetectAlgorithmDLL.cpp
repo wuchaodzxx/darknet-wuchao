@@ -373,12 +373,21 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 			pODInfo->originImage.ulSize = nSize;
 			pODInfo->originImage.unHeight = nHeight;
 			pODInfo->originImage.unWidth = nWidth;
-
+		}
+		else{
+			LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] pODInfo->originImage.nBuffSize is less than imageSize \n");
+		}
+		if (dst->imageSize <= (pODInfo->resultImage.nBuffSize)){
 			memcpy(pODInfo->resultImage.pImage, dst->imageData, dst->imageSize);
 			pODInfo->resultImage.ulSize = dst->imageSize;
 			pODInfo->resultImage.unHeight = nHeight;
 			pODInfo->resultImage.unWidth = nWidth;
 		}
+		else{
+			LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] pODInfo->resultImage.nBuffSize is less than imageSize \n");
+		}
+		printf("input size:%d \n", nSize);
+		printf("output size:%d \n", dst->imageSize);
 		cvReleaseImageHeader(&im);
 		cvReleaseImageHeader(&dst);
 		free(pRGB);
