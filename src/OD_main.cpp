@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 	IplImage *oriIm = cvCreateImageHeader(cvSize(oWidth, oHeight), IPL_DEPTH_8U, 3);
 	memcpy(poRGB, sIVA_OBJECT_DETECT_INFOp.originImage.pImage, oWidth*oHeight * 3);
 	cvSetData(oriIm, poRGB, oWidth * 3);
-	cvCvtColor(oriIm, oriIm, CV_BGR2RGB);
+	//cvCvtColor(oriIm, oriIm, CV_BGR2RGB);
 	cvShowImage("originImage", oriIm);
 	cvWaitKey(0);
 	//Ω·π˚Õºœ‘ æ
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 	IplImage *outIm = cvCreateImageHeader(cvSize(rWidth, rHeight), IPL_DEPTH_8U, 3);
 	memcpy(pRGB, sIVA_OBJECT_DETECT_INFOp.resultImage.pImage, rWidth*rHeight * 3);
 	cvSetData(outIm, pRGB, rWidth * 3);
-	cvCvtColor(outIm, outIm, CV_BGR2RGB);
+	//cvCvtColor(outIm, outIm, CV_BGR2RGB);
 	cvShowImage("resultImage", outIm);
 	cvWaitKey(0);
 

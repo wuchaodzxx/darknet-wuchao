@@ -103,7 +103,7 @@ void* CreateObjectDetectDLLHandle(IVA_OBJECT_DETECT_RULE* pODRule) {
 	}
 	else
 	{
-		LogObjectDetect(LOG_LEVEL_ERROR, "[LeaveWorkDetectAlgorithm] read config failed!\n");
+		LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] read config failed!\n");
 		return NULL;
 	}
 	setlocale(LC_ALL, "C");
@@ -116,7 +116,7 @@ void* CreateObjectDetectDLLHandle(IVA_OBJECT_DETECT_RULE* pODRule) {
 	char *weights = (char *)sweights.c_str();
 	float thresh = atof((char *)sthresh.c_str());
 	if (strcmp(cfg, "None") == 0 || strcmp(weights, "None") == 0) {
-		LogObjectDetect(LOG_LEVEL_ERROR, "[LeaveWorkDetectAlgorithm] cfg or weights not defined in config file \n");
+		LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] cfg or weights not defined in config file \n");
 		printf("cfg or weights not defined in config file \n");
 		return NULL;
 	}
@@ -150,6 +150,7 @@ void* CreateObjectDetectDLLHandle(IVA_OBJECT_DETECT_RULE* pODRule) {
 * @note
 */
 int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize, int nWidth, int nHeight, int nFrameType, IVA_OBJECT_DETECT_INFO* pODInfo) {
+	LogObjectDetect(LOG_LEVEL_INFO, "[ObjectDetectAlgorithm] ObjectDetectAlgorithmDLLExe is running......!\n");
 	//原始图像结构体
 	ST_IVA_IMAGE_INFO sT_IVA_IMAGE_INFO;
 	sT_IVA_IMAGE_INFO.pImage = pByte;
@@ -224,8 +225,8 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 
 		////转换成darknet的image结构体
 		image img2 = OD_ipl_to_image(im);
-		cout << "OD_ipl_to_image is Done." << endl;
-
+		
+		
 		ObjectBoxs oBoxs = OD_detector((ODDATA *)pODHandle, img2);
 		//将检测到的框根据评分排序
 		if (oBoxs.nums > 0) {
@@ -234,7 +235,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 
 		//计时结束
 		ends = clock();
-		cout << "OD_detector is Done.using time:" << ends - start << endl;
+		//cout << "OD_detector is Done.using time:" << ends - start << endl;
 
 		//获取指定区域
 		int top = 1;
@@ -301,6 +302,15 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 					printf("Now       %s,lableCode:%d  : %f (%d,%d,%d,%d)\n", oBox.name, iVA_LABEL_INFO.nLabelCode, oBox.prob, iVA_LABEL_INFO.labelRect.x, iVA_LABEL_INFO.labelRect.y, iVA_LABEL_INFO.labelRect.width, iVA_LABEL_INFO.labelRect.height);
 
 				}
+
+				// 格式化并打印各种数据到buffer
+				char  buffer[200], s[] = "[ObjectDetectAlgorithm] ";	
+				int j;
+				j = sprintf(buffer, "%s ", s);
+				j += sprintf(buffer + j, "lableCode : %d ,", labelCode[oBox.nclass]);
+				j += sprintf(buffer + j, "prob : %f \n", oBox.prob);
+				printf(buffer);
+				LogObjectDetect(LOG_LEVEL_INFO, buffer);	
 			}
 		}
 		else {
@@ -320,10 +330,29 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		labelNamesEn[1065 - 1061] = "largetrunck";
 		labelNamesEn[1061 - 1061] = "crane";
 
+
+		//获取当前时间
+		time_t tt = time(NULL);//这句返回的只是一个时间cuo
+		tm* t = localtime(&tt);
+		char  buffer_time_origin[400], s2[] = "originImage_";
+		int j2;
+		j2 = sprintf(buffer_time_origin, "%s", s2);
+		j2 += sprintf(buffer_time_origin + j2, "%d%02d%02d%02d%02d%d%s", t->tm_year + 1900,
+			t->tm_mon + 1,
+			t->tm_mday,
+			t->tm_hour,
+			t->tm_min,
+			t->tm_sec,
+			".bmp");
+		//保存原始图到本地
+		cvSaveImage(buffer_time_origin, im);
+		//cvSaveImage("originImage.bmp", im);
+
+
 		IplImage *src = im;
 		IplImage *dst;
 		dst = cvCloneImage(src);
-		
+
 		if (box_sum>0) {
 			int i2;
 			for (i2 = 0; i2 < box_sum; i2++) {
@@ -347,6 +376,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 
 			}
 		}
+		cvCvtColor(dst, dst, CV_BGR2RGB);
 		//cvShowImage("outimage", dst);
 		//cvWaitKey(0);
 
@@ -357,7 +387,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		time(&timep);
 
 		//设置返回结果结构体
-		
+
 		int nDetectRect = ((ODDATA *)pODHandle)->rule.nDetectRect;
 		if (nDetectRect<box_sum && nDetectRect>0){
 			pODInfo->nLabelRect = nDetectRect;//类别数目
@@ -386,11 +416,27 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		else{
 			LogObjectDetect(LOG_LEVEL_ERROR, "[ObjectDetectAlgorithm] pODInfo->resultImage.nBuffSize is less than imageSize \n");
 		}
-		printf("input size:%d \n", nSize);
-		printf("output size:%d \n", dst->imageSize);
+
+		//保存结果图到本地
+		//cvCvtColor(dst, dst, CV_RGB2BGR);
+		char  buffer_time_result[400], s3[] = "resultImage_";
+		int j3;
+		j3 = sprintf(buffer_time_result, "%s", s3);
+		j3 += sprintf(buffer_time_result + j3, "%d%02d%02d%02d%02d%d%s", t->tm_year + 1900,
+			t->tm_mon + 1,
+			t->tm_mday,
+			t->tm_hour,
+			t->tm_min,
+			t->tm_sec,
+			".bmp");
+		cvSaveImage(buffer_time_result, dst);
+		//"/home/test001/soft/VAS/123/"
+		//cvSaveImage("resultImage.bmp", dst);
+
 		cvReleaseImageHeader(&im);
 		cvReleaseImageHeader(&dst);
 		free(pRGB);
+		LogObjectDetect(LOG_LEVEL_INFO, "[ObjectDetectAlgorithm] ObjectDetectAlgorithmDLLExe is done!\n");
 	}
 	return 0;
 }
@@ -402,7 +448,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 * @note
 */
 void DestoryObjectDetectDLLHandle(void* pODHandle) {
-	
+
 	pODHandle = NULL;
 
 }

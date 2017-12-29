@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "utils.h"
 #include "parser.h"
+#include "region_layer.h"
 #include "ODDefine.h"
 
 list* OD_read_cfg(char * path) {
@@ -69,7 +70,7 @@ ObjectBoxs OD_detector(ODDATA * pODHandle, image im) {
 		printf("network_predict...\n");
 		network_predict(net, X);
 		printf("network_predict is Done.\n");
-		printf("%s: Predicted in %f seconds.\n", input, sec(clock() - time));
+		printf("Predicted in %f seconds.\n", sec(clock() - time));
 		get_region_boxes(l, 1, 1, pODHandle->thresh, probs, boxes, 0, 0);
 		if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
 

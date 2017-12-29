@@ -1,3 +1,3 @@
-darknet_no_gpu.exe detect data/spider.jpg
+darknet_no_gpu.exe detect data/real.jpg
 
 pause
