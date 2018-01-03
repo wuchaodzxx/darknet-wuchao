@@ -258,6 +258,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 			for (i1 = 0; i1 < oBoxs.nums; i1++) {
 				ObjectBox oBox = oBoxs.objectBoxArray[i1];
 				std::cout << "oBox.nclass:" << oBox.nclass << std::endl;
+				//cout << "NAME:" << ((ODDATA *)pODHandle)->names[oBox.nclass] << endl;;
 				//生成对应的结构体
 				IVA_LABEL_INFO iVA_LABEL_INFO;
 				IVA_RECT iVA_RECT;
@@ -274,7 +275,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 					iVA_RECT.y = oBox.top;
 					iVA_RECT.height = oBox.height;
 					iVA_RECT.width = oBox.width;
-
+					
 					iVA_LABEL_INFO.nLabelCode = labelCode[oBox.nclass];
 					iVA_LABEL_INFO.labelRect = iVA_RECT;
 
