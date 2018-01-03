@@ -335,7 +335,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 		//获取当前时间
 		time_t tt = time(NULL);//这句返回的只是一个时间cuo
 		tm* t = localtime(&tt);
-		char  buffer_time_origin[400], s2[] = "originImage_";
+		char  buffer_time_origin[400], s2[] = "/home/test001/soft/VAS/123/originImage_";
 		int j2;
 		j2 = sprintf(buffer_time_origin, "%s", s2);
 		j2 += sprintf(buffer_time_origin + j2, "%d%02d%02d%02d%02d%d%s", t->tm_year + 1900,
@@ -420,7 +420,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 
 		//保存结果图到本地
 		//cvCvtColor(dst, dst, CV_RGB2BGR);
-		char  buffer_time_result[400], s3[] = "resultImage_";
+		char  buffer_time_result[400], s3[] = "/home/test001/soft/VAS/123/resultImage_";
 		int j3;
 		j3 = sprintf(buffer_time_result, "%s", s3);
 		j3 += sprintf(buffer_time_result + j3, "%d%02d%02d%02d%02d%d%s", t->tm_year + 1900,
@@ -449,7 +449,9 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 * @note
 */
 void DestoryObjectDetectDLLHandle(void* pODHandle) {
-
+	ODDATA * oDDATA = (ODDATA *)pODHandle;
+	delete oDDATA;
+	oDDATA = NULL;
 	pODHandle = NULL;
 
 }
