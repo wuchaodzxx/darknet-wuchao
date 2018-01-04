@@ -121,19 +121,25 @@ void* CreateObjectDetectDLLHandle(IVA_OBJECT_DETECT_RULE* pODRule) {
 		return NULL;
 	}
 
-
+	
 	network net = OD_parse_network_cfg_custom(cfg, 1);
+	
+	
 	if (weights) {
 		OD_load_weights(net, weights);
 	}
 	OD_set_batch_network(&net, 1);
 	srand(2222222);
+	
 
-	ODDATA* oDDATA = new ODDATA;
+	ODDATA* oDDATA = NULL;
+	
+	oDDATA  = new ODDATA;
 	oDDATA->net = net;
 	oDDATA->names = names;
 	oDDATA->thresh = thresh;
 	oDDATA->rule = *pODRule;
+	
 	return oDDATA;
 }
 
@@ -450,6 +456,7 @@ int ObjectDetectAlgorithmDLLExe(void* pODHandle, unsigned char* pByte, int nSize
 */
 void DestoryObjectDetectDLLHandle(void* pODHandle) {
 	ODDATA * oDDATA = (ODDATA *)pODHandle;
+	OD_free_network(oDDATA->net);
 	delete oDDATA;
 	oDDATA = NULL;
 	pODHandle = NULL;

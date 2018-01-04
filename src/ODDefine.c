@@ -14,6 +14,9 @@ char* OD_find_str(list* ls, char* s1, char* s2) {
 network OD_parse_network_cfg_custom(char * cfg, int n) {
 	return parse_network_cfg(cfg);
 }
+void OD_free_network(network net){
+	free_network(net);
+}
 void OD_load_weights(network net, char* weights) {
 	load_weights(&net, weights);
 }

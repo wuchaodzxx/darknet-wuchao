@@ -35,6 +35,7 @@ extern "C" {
 	list* OD_read_cfg(char * path);
 	char* OD_find_str(list* ls, char* s1, char* s2);
 	network OD_parse_network_cfg_custom(char * cfg, int n);
+	void OD_free_network(network net);
 	void OD_load_weights(network net, char* weights);
 	ObjectBoxs OD_detector(ODDATA * pODHandle, image img);
 	image OD_ipl_to_image(IplImage* src);
